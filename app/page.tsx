@@ -132,23 +132,23 @@ export default function Home() {
             className="text-center mb-16"
           >
             <motion.h1
-              className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-accent via-accent-2 to-danger bg-clip-text text-transparent"
+              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 bg-gradient-to-r from-accent via-accent-2 to-danger bg-clip-text text-transparent leading-tight"
               initial={{ y: 20 }}
               animate={{ y: 0 }}
               transition={{ delay: 0.2 }}
             >
               Watch Anime
               <br />
-              <span className="text-5xl md:text-6xl">Without Limits</span>
+              <span className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl">Without Limits</span>
             </motion.h1>
 
             <motion.p
-              className="text-xl text-muted mb-10 max-w-2xl mx-auto"
+              className="text-lg sm:text-xl text-muted mb-10 max-w-2xl mx-auto px-4"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              Stream thousands of anime episodes in HD quality with multiple providers
+              Stream thousands of anime episodes in HD quality with multiple providers. Your ultimate destination for unlimited anime entertainment.
             </motion.p>
 
             {/* Search Bar */}
@@ -202,8 +202,8 @@ export default function Home() {
             </h2>
 
             {loading ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {[...Array(10)].map((_, i) => (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+                {[...Array(12)].map((_, i) => (
                   <div key={i} className="skeleton rounded-2xl aspect-[2/3] animate-pulse" />
                 ))}
               </div>
@@ -212,7 +212,7 @@ export default function Home() {
                 variants={container}
                 initial="hidden"
                 animate="show"
-                className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6"
               >
                 {trending.map((anime) => (
                   <motion.div key={anime.id} variants={item}>
@@ -220,7 +220,7 @@ export default function Home() {
                       <motion.div
                         whileHover={{ scale: 1.05, y: -8 }}
                         whileTap={{ scale: 0.98 }}
-                        className="group relative rounded-2xl overflow-hidden glass cursor-pointer"
+                        className="group relative rounded-2xl overflow-hidden glass cursor-pointer shadow-lg hover:shadow-2xl transition-shadow duration-300"
                       >
                         <div className="aspect-[2/3] relative">
                           {anime.coverImage?.extraLarge ? (

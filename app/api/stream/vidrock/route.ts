@@ -39,22 +39,6 @@ export async function GET(request: Request) {
       height: 100%;
       border: none;
     }
-    .ad-overlay, .redirect-blocker {
-      display: none !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-      visibility: hidden !important;
-    }
-    /* Ad blocker styles */
-    [class*="ad-"], [id*="ad-"], [class*="ads-"], [id*="ads-"],
-    [class*="banner"], [id*="banner"], [class*="popup"], [id*="popup"],
-    .advertisement, .ad-container, .adsbygoogle {
-      display: none !important;
-      width: 0 !important;
-      height: 0 !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-    }
     .loading {
       position: absolute;
       top: 50%;
@@ -89,59 +73,8 @@ export async function GET(request: Request) {
   </div>
 
   <script>
-    // Advanced ad blocker and redirect prevention
     (function() {
       'use strict';
-
-      // Block popup windows
-      window.open = function() { return null; };
-      window.alert = function() { return null; };
-      window.confirm = function() { return true; };
-
-      // Block redirects
-      let currentUrl = window.location.href;
-      Object.defineProperty(window, 'location', {
-        get: function() { return currentUrl; },
-        set: function(url) {
-          if (url === currentUrl) return;
-          console.log('Blocked redirect to:', url);
-          return currentUrl;
-        }
-      });
-
-      // Remove ad elements continuously
-      function removeAds() {
-        const adSelectors = [
-          '[class*="ad-"]', '[id*="ad-"]', '[class*="ads-"]', '[id*="ads-"]',
-          '[class*="banner"]', '[id*="banner"]', '[class*="popup"]', '[id*="popup"]',
-          '.advertisement', '.ad-container', '.adsbygoogle', '[data-ad-slot]',
-          'ins.adsbygoogle', '[class*="sponsor"]', '[id*="sponsor"]'
-        ];
-
-        adSelectors.forEach(selector => {
-          document.querySelectorAll(selector).forEach(el => {
-            el.remove();
-          });
-        });
-      }
-
-      // Block click redirects
-      document.addEventListener('click', function(e) {
-        const target = e.target;
-        if (target && (
-          target.classList.toString().includes('ad') ||
-          target.id.includes('ad') ||
-          target.closest('[class*="ad-"]') ||
-          target.closest('[id*="ad-"]')
-        )) {
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
-        }
-      }, true);
-
-      // Monitor and remove ads continuously
-      setInterval(removeAds, 500);
 
       // Remove loading overlay after delay
       setTimeout(() => {
@@ -172,29 +105,6 @@ export async function GET(request: Request) {
       }
 
       loadPlayer();
-
-      // Additional protection
-      const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-          mutation.addedNodes.forEach(function(node) {
-            if (node.nodeType === 1) {
-              const element = node;
-              if (
-                element.classList.toString().includes('ad') ||
-                element.id.includes('ad') ||
-                element.tagName === 'INS'
-              ) {
-                element.remove();
-              }
-            }
-          });
-        });
-      });
-
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true
-      });
 
     })();
   </script>

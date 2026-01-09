@@ -202,7 +202,7 @@ export default function AnimePage() {
             </motion.div>
           )}
 
-          <div className="grid lg:grid-cols-[300px,1fr] gap-8">
+          <div className="grid lg:grid-cols-[280px,1fr] xl:grid-cols-[320px,1fr] gap-6 md:gap-8">
             {/* Sidebar */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
@@ -289,7 +289,7 @@ export default function AnimePage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
-                <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-accent to-accent-2 bg-clip-text text-transparent">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-accent to-accent-2 bg-clip-text text-transparent leading-tight">
                   {getTitle(anime)}
                 </h1>
 
@@ -334,8 +334,8 @@ export default function AnimePage() {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setSelectedProvider(provider)}
-                        className={`btn ${
-                          selectedProvider === provider ? "ring-2 ring-accent" : "opacity-60"
+                        className={`btn text-sm md:text-base ${
+                          selectedProvider === provider ? "ring-2 ring-accent shadow-lg" : "opacity-60 hover:opacity-80"
                         }`}
                       >
                         {providerNames[provider]}
@@ -357,7 +357,7 @@ export default function AnimePage() {
                       Episodes
                     </h2>
 
-                    <div className="grid grid-cols-5 md:grid-cols-10 gap-3 max-h-[400px] overflow-y-auto pr-2">
+                    <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2 md:gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                       {[...Array(anime.episodes)].map((_, i) => {
                         const ep = i + 1;
                         return (
@@ -369,9 +369,9 @@ export default function AnimePage() {
                               setSelectedEpisode(ep);
                               setShowPlayer(true);
                             }}
-                            className={`aspect-square rounded-xl flex items-center justify-center font-semibold transition-all ${
+                            className={`aspect-square rounded-xl flex items-center justify-center font-semibold text-sm transition-all ${
                               selectedEpisode === ep
-                                ? "btn ring-2 ring-accent"
+                                ? "btn ring-2 ring-accent shadow-lg"
                                 : "glass hover:bg-accent/10"
                             }`}
                           >

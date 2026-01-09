@@ -39,11 +39,6 @@ export async function GET(request: Request) {
       height: 100%;
       border: none;
     }
-    .ad-overlay, .redirect-blocker, [class*="ad-"], [id*="ad-"] {
-      display: none !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-    }
     .loading {
       position: absolute;
       top: 50%;
@@ -82,63 +77,6 @@ export async function GET(request: Request) {
     (function() {
       'use strict';
 
-      // Block all popups and ads
-      window.open = () => null;
-      window.alert = () => null;
-      window.confirm = () => true;
-      window.print = () => null;
-
-      // Prevent redirects
-      const originalLocation = window.location.href;
-      let redirectAttempts = 0;
-
-      const locationProxy = new Proxy(window.location, {
-        set: function(target, prop, value) {
-          if (prop === 'href' && value !== originalLocation) {
-            redirectAttempts++;
-            console.log('Blocked redirect attempt', redirectAttempts, 'to:', value);
-            return false;
-          }
-          return Reflect.set(target, prop, value);
-        }
-      });
-
-      // Ad removal
-      function removeAds() {
-        const selectors = [
-          '[class*="ad"]', '[id*="ad"]', '[class*="banner"]',
-          '[id*="banner"]', '[class*="popup"]', 'ins', '.adsbygoogle',
-          '[data-ad]', '[class*="sponsor"]', 'iframe[src*="ad"]'
-        ];
-
-        selectors.forEach(selector => {
-          try {
-            document.querySelectorAll(selector).forEach(el => {
-              if (!el.id.includes('player') && el.id !== 'player-container') {
-                el.remove();
-              }
-            });
-          } catch(e) {}
-        });
-      }
-
-      // Block click hijacking
-      document.addEventListener('click', function(e) {
-        const target = e.target;
-        const isAd = target && (
-          target.classList.toString().includes('ad') ||
-          target.id.includes('ad') ||
-          target.closest('[class*="ad"]') ||
-          target.hasAttribute('data-ad')
-        );
-
-        if (isAd) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          return false;
-        }
-      }, true);
-
       // Multiple streaming sources
       const streamSources = [
         'https://gogoanime.lu/streaming.php?id=${sanitizedTitle}-episode-${episode}',
@@ -175,25 +113,6 @@ export async function GET(request: Request) {
       }
 
       loadStream();
-
-      // Continuous ad blocking
-      setInterval(removeAds, 300);
-
-      // Mutation observer for dynamic ads
-      new MutationObserver(mutations => {
-        mutations.forEach(mutation => {
-          mutation.addedNodes.forEach(node => {
-            if (node.nodeType === 1 && node.id !== 'player-container') {
-              const el = node;
-              if (el.classList.toString().includes('ad') ||
-                  el.id.includes('ad') ||
-                  el.tagName === 'INS') {
-                el.remove();
-              }
-            }
-          });
-        });
-      }).observe(document.body, { childList: true, subtree: true });
 
     })();
   </script>
