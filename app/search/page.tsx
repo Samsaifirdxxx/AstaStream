@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { Search, Star, Play, Sparkles, ChevronLeft, Loader2 } from "lucide-react";
 import { Background } from "../components/Background";
 import Link from "next/link";
@@ -27,7 +27,7 @@ type AnimeMedia = {
   description?: string;
 };
 
-const container = {
+const container: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
@@ -37,13 +37,17 @@ const container = {
   },
 };
 
-const item = {
+const item: Variants = {
   hidden: { opacity: 0, y: 20, scale: 0.95 },
   show: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: "spring", bounce: 0.3, duration: 0.6 },
+    transition: {
+      type: "spring",
+      bounce: 0.3,
+      duration: 0.6,
+    },
   },
 };
 
@@ -63,10 +67,18 @@ export default function SearchPage() {
         .then((data) => {
           if (data.Page?.media) {
             setResults(data.Page.media);
+          } else {
+            setResults([]);
           }
           setLoading(false);
         })
-        .catch(() => setLoading(false));
+        .catch(() => {
+          setResults([]);
+          setLoading(false);
+        });
+    } else {
+      setResults([]);
+      setLoading(false);
     }
   }, [query]);
 
@@ -229,9 +241,7 @@ export default function SearchPage() {
                                   </div>
                                 )}
                                 {anime.episodes && (
-                                  <span className="text-xs text-muted">
-                                    {anime.episodes} eps
-                                  </span>
+                                  <span className="text-xs text-muted">{anime.episodes} eps</span>
                                 )}
                               </div>
                               <motion.button
@@ -289,9 +299,7 @@ export default function SearchPage() {
               <span className="font-semibold">Created by @Hellfirez3643</span>
             </a>
           </motion.div>
-          <p className="text-muted text-sm">
-            AstaStream - Your Ultimate Anime Streaming Platform
-          </p>
+          <p className="text-muted text-sm">AstaStream - Your Ultimate Anime Streaming Platform</p>
         </div>
       </motion.footer>
     </div>
