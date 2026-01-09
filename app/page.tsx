@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { Search, Play, Star, TrendingUp, Film, Sparkles } from "lucide-react";
 import { Background } from "./components/Background";
 import Link from "next/link";
@@ -25,7 +25,7 @@ type AnimeMedia = {
   format?: string;
 };
 
-const container = {
+const container: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
@@ -36,13 +36,17 @@ const container = {
   },
 };
 
-const item = {
+const item: Variants = {
   hidden: { opacity: 0, y: 30, scale: 0.95 },
   show: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: "spring", bounce: 0.3, duration: 0.7 },
+    transition: {
+      type: "spring",
+      bounce: 0.3,
+      duration: 0.7,
+    },
   },
 };
 
@@ -100,11 +104,17 @@ export default function Home() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2 text-muted hover:text-foreground transition-colors">
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-muted hover:text-foreground transition-colors"
+            >
               <TrendingUp className="w-4 h-4" />
               Trending
             </Link>
-            <Link href="/browse" className="flex items-center gap-2 text-muted hover:text-foreground transition-colors">
+            <Link
+              href="/browse"
+              className="flex items-center gap-2 text-muted hover:text-foreground transition-colors"
+            >
               <Film className="w-4 h-4" />
               Browse
             </Link>
@@ -242,9 +252,7 @@ export default function Home() {
                                   </div>
                                 )}
                                 {anime.episodes && (
-                                  <span className="text-xs text-muted">
-                                    {anime.episodes} eps
-                                  </span>
+                                  <span className="text-xs text-muted">{anime.episodes} eps</span>
                                 )}
                               </div>
                               <motion.button
@@ -291,10 +299,7 @@ export default function Home() {
         className="relative z-10 glass mt-20 py-8"
       >
         <div className="container mx-auto px-4 text-center">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="inline-block mb-4"
-          >
+          <motion.div whileHover={{ scale: 1.05 }} className="inline-block mb-4">
             <a
               href="https://t.me/Hellfirez3643"
               target="_blank"
@@ -305,9 +310,7 @@ export default function Home() {
               <span className="font-semibold">Created by @Hellfirez3643</span>
             </a>
           </motion.div>
-          <p className="text-muted text-sm">
-            AstaStream - Your Ultimate Anime Streaming Platform
-          </p>
+          <p className="text-muted text-sm">AstaStream - Your Ultimate Anime Streaming Platform</p>
         </div>
       </motion.footer>
     </div>
