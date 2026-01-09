@@ -6,7 +6,6 @@ export async function GET(request: Request) {
   const episode = searchParams.get("episode") || "1";
   const animeId = searchParams.get("id") || "";
 
-  // Server 1 - HiAnime direct streaming
   const sanitizedTitle = anime.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
   const html = `
@@ -15,7 +14,7 @@ export async function GET(request: Request) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Episode ${episode} - Server 1</title>
+  <title>Episode ${episode} - Aniwatch</title>
   <style>
     * {
       margin: 0;
@@ -44,15 +43,15 @@ export async function GET(request: Request) {
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      color: #22d3ee;
+      color: #fb7185;
       font-size: 16px;
       text-align: center;
       z-index: 100;
     }
     .spinner {
-      border: 3px solid rgba(34, 211, 238, 0.2);
+      border: 3px solid rgba(251, 113, 133, 0.2);
       border-radius: 50%;
-      border-top: 3px solid #22d3ee;
+      border-top: 3px solid #fb7185;
       width: 40px;
       height: 40px;
       animation: spin 1s linear infinite;
@@ -69,7 +68,7 @@ export async function GET(request: Request) {
   <div id="player-container">
     <div class="loading" id="loading">
       <div class="spinner"></div>
-      <div>Loading from Server 1...</div>
+      <div>Loading from Aniwatch...</div>
     </div>
     <iframe id="player" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups allow-modals"></iframe>
   </div>
@@ -78,15 +77,13 @@ export async function GET(request: Request) {
     (function() {
       'use strict';
 
-      // Block popups
       window.open = () => null;
 
-      // Multiple streaming sources with working APIs
       const streamSources = [
-        'https://hianime.to/watch/${sanitizedTitle}-${animeId}?ep=${episode}',
-        'https://hianime.to/embed/${sanitizedTitle}-${animeId}?ep=${episode}',
         'https://aniwatch.to/watch/${sanitizedTitle}-${animeId}?ep=${episode}',
-        'https://9anime.to/watch/${sanitizedTitle}?ep=${episode}'
+        'https://aniwatch.to/embed/${sanitizedTitle}-${animeId}?ep=${episode}',
+        'https://hianime.to/watch/${sanitizedTitle}-${animeId}?ep=${episode}',
+        'https://kaido.to/watch/${sanitizedTitle}-${animeId}?ep=${episode}',
       ];
 
       let sourceIndex = 0;
@@ -118,7 +115,6 @@ export async function GET(request: Request) {
 
       loadStream();
 
-      // Remove ads periodically
       setInterval(() => {
         document.querySelectorAll('[class*="ad"],[id*="ad"],ins').forEach(e => e.remove());
       }, 300);

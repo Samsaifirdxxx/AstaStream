@@ -6,7 +6,6 @@ export async function GET(request: Request) {
   const episode = searchParams.get("episode") || "1";
   const animeId = searchParams.get("id") || "";
 
-  // Server 4 - Additional backup streaming sources
   const sanitizedTitle = anime.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
   const html = `
@@ -15,7 +14,7 @@ export async function GET(request: Request) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Episode ${episode} - Server 4</title>
+  <title>Episode ${episode} - Universal Player</title>
   <style>
     * {
       margin: 0;
@@ -62,6 +61,11 @@ export async function GET(request: Request) {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    .source-info {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #888;
+    }
     [class*="ad"], [id*="ad"], ins { display: none !important; }
   </style>
 </head>
@@ -69,7 +73,8 @@ export async function GET(request: Request) {
   <div id="player-container">
     <div class="loading" id="loading">
       <div class="spinner"></div>
-      <div>Loading from Server 4...</div>
+      <div>Finding best streaming source...</div>
+      <div class="source-info" id="source-info"></div>
     </div>
     <iframe id="player" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups allow-modals"></iframe>
   </div>
@@ -78,42 +83,75 @@ export async function GET(request: Request) {
     (function() {
       'use strict';
 
-      // Block popups
       window.open = () => null;
 
-      // Multiple backup streaming sources
+      // Multiple streaming sources with priority order
       const streamSources = [
-        'https://aniwave.to/watch/${sanitizedTitle}.${animeId}/ep-${episode}',
-        'https://zoro.to/watch/${sanitizedTitle}-${animeId}?ep=${episode}',
-        'https://kaido.to/watch/${sanitizedTitle}-${animeId}?ep=${episode}',
-        'https://anime.embtaku.pro/v1/${sanitizedTitle}-episode-${episode}',
-        'https://2anime.xyz/embed/${sanitizedTitle}-episode-${episode}'
+        { url: 'https://hianime.to/watch/${sanitizedTitle}-${animeId}?ep=${episode}', name: 'HiAnime Primary' },
+        { url: 'https://aniwatch.to/watch/${sanitizedTitle}-${animeId}?ep=${episode}', name: 'Aniwatch' },
+        { url: 'https://anitaku.pe/streaming.php?id=${sanitizedTitle}-episode-${episode}', name: 'GoGoAnime' },
+        { url: 'https://hianime.to/embed/${sanitizedTitle}-${animeId}?ep=${episode}', name: 'HiAnime Embed' },
+        { url: 'https://embtaku.pro/streaming.php?id=${sanitizedTitle}-episode-${episode}', name: 'GoGoAnime Mirror' },
+        { url: 'https://kaido.to/watch/${sanitizedTitle}-${animeId}?ep=${episode}', name: 'Kaido' },
+        { url: 'https://zoro.to/watch/${sanitizedTitle}-${animeId}?ep=${episode}', name: 'Zoro' },
       ];
 
       let sourceIndex = 0;
+      let retryCount = 0;
+      const maxRetries = 2;
+
+      function updateSourceInfo(text) {
+        const sourceInfo = document.getElementById('source-info');
+        if (sourceInfo) {
+          sourceInfo.textContent = text;
+        }
+      }
 
       function loadStream() {
         const iframe = document.getElementById('player');
         const loading = document.getElementById('loading');
 
-        iframe.src = streamSources[sourceIndex];
+        if (sourceIndex >= streamSources.length) {
+          if (retryCount < maxRetries) {
+            retryCount++;
+            sourceIndex = 0;
+            updateSourceInfo(\`Retrying... (Attempt \${retryCount + 1})\`);
+            setTimeout(loadStream, 2000);
+            return;
+          } else {
+            if (loading) {
+              loading.innerHTML = '<div style="color: #fb7185;">Unable to load stream from any source. Please try another server or check back later.</div>';
+            }
+            return;
+          }
+        }
+
+        const currentSource = streamSources[sourceIndex];
+        updateSourceInfo(\`Trying: \${currentSource.name}\`);
+
+        iframe.src = currentSource.url;
+
+        let loadTimeout = setTimeout(() => {
+          console.log('Load timeout for', currentSource.name);
+          sourceIndex++;
+          loadStream();
+        }, 10000);
 
         iframe.onload = function() {
+          clearTimeout(loadTimeout);
           setTimeout(() => {
-            if (loading) loading.style.display = 'none';
+            if (loading) {
+              loading.style.display = 'none';
+              console.log('Successfully loaded:', currentSource.name);
+            }
           }, 2000);
         };
 
         iframe.onerror = function() {
+          clearTimeout(loadTimeout);
+          console.log('Failed to load from', currentSource.name);
           sourceIndex++;
-          if (sourceIndex < streamSources.length) {
-            console.log('Trying backup source', sourceIndex);
-            setTimeout(loadStream, 1000);
-          } else {
-            if (loading) {
-              loading.innerHTML = '<div style="color: #fb7185;">Unable to load stream. Please try another server.</div>';
-            }
-          }
+          setTimeout(loadStream, 1000);
         };
       }
 

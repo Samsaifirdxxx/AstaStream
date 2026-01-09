@@ -6,7 +6,6 @@ export async function GET(request: Request) {
   const episode = searchParams.get("episode") || "1";
   const animeId = searchParams.get("id") || "";
 
-  // Server 2 - GogoAnime streaming sources
   const sanitizedTitle = anime.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
   const html = `
@@ -15,7 +14,7 @@ export async function GET(request: Request) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Episode ${episode} - Server 2</title>
+  <title>Episode ${episode} - GoGoAnime</title>
   <style>
     * {
       margin: 0;
@@ -69,7 +68,7 @@ export async function GET(request: Request) {
   <div id="player-container">
     <div class="loading" id="loading">
       <div class="spinner"></div>
-      <div>Loading from Server 2...</div>
+      <div>Loading from GoGoAnime...</div>
     </div>
     <iframe id="player" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups allow-modals"></iframe>
   </div>
@@ -78,16 +77,13 @@ export async function GET(request: Request) {
     (function() {
       'use strict';
 
-      // Block popups
       window.open = () => null;
 
-      // Multiple GogoAnime streaming sources
       const streamSources = [
-        'https://gogoanime3.co/streaming.php?id=${sanitizedTitle}-episode-${episode}',
+        'https://anitaku.pe/streaming.php?id=${sanitizedTitle}-episode-${episode}',
         'https://gogoanime3.co/${sanitizedTitle}-episode-${episode}',
         'https://embtaku.pro/streaming.php?id=${sanitizedTitle}-episode-${episode}',
-        'https://www1.gogoanime3.com/watch/${sanitizedTitle}/${episode}',
-        'https://anitaku.pe/streaming.php?id=${sanitizedTitle}-episode-${episode}'
+        'https://www1.gogoanime3.com/${sanitizedTitle}-episode-${episode}',
       ];
 
       let sourceIndex = 0;
@@ -119,19 +115,9 @@ export async function GET(request: Request) {
 
       loadStream();
 
-      // Remove ads periodically
       setInterval(() => {
         document.querySelectorAll('[class*="ad"],[id*="ad"],ins').forEach(e => e.remove());
       }, 300);
-
-      // Prevent ad clicks
-      document.addEventListener('click', e => {
-        if (e.target.closest('[class*="ad"]')) {
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
-        }
-      }, true);
 
     })();
   </script>

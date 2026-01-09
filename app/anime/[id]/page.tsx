@@ -41,19 +41,19 @@ type AnimeDetails = {
 };
 
 const StreamProvider = {
-  SERVER1: "server1",
-  SERVER2: "server2",
-  SERVER3: "server3",
-  SERVER4: "server4",
+  HIANIME: "hianime",
+  GOGOANIME: "gogoanime",
+  ANIWATCH: "aniwatch",
+  UNIVERSAL: "universal",
 } as const;
 
 type StreamProviderType = (typeof StreamProvider)[keyof typeof StreamProvider];
 
 const providerNames: Record<StreamProviderType, string> = {
-  [StreamProvider.SERVER1]: "Server 1",
-  [StreamProvider.SERVER2]: "Server 2",
-  [StreamProvider.SERVER3]: "Server 3",
-  [StreamProvider.SERVER4]: "Server 4",
+  [StreamProvider.HIANIME]: "HiAnime (Best)",
+  [StreamProvider.GOGOANIME]: "GoGoAnime",
+  [StreamProvider.ANIWATCH]: "Aniwatch",
+  [StreamProvider.UNIVERSAL]: "Universal (All Sources)",
 };
 
 const providers = Object.values(StreamProvider) as StreamProviderType[];
@@ -66,7 +66,7 @@ export default function AnimePage() {
   const [loading, setLoading] = useState(true);
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   const [selectedProvider, setSelectedProvider] = useState<StreamProviderType>(
-    StreamProvider.SERVER1
+    StreamProvider.HIANIME
   );
   const [showPlayer, setShowPlayer] = useState(false);
 
@@ -104,14 +104,14 @@ export default function AnimePage() {
     const encodedTitle = encodeURIComponent(title);
 
     switch (provider) {
-      case StreamProvider.SERVER1:
-        return `/api/stream/server1?anime=${encodedTitle}&episode=${episode}&id=${animeId}`;
-      case StreamProvider.SERVER2:
-        return `/api/stream/server2?anime=${encodedTitle}&episode=${episode}&id=${animeId}`;
-      case StreamProvider.SERVER3:
-        return `/api/stream/server3?anime=${encodedTitle}&episode=${episode}&id=${animeId}`;
-      case StreamProvider.SERVER4:
-        return `/api/stream/server4?anime=${encodedTitle}&episode=${episode}&id=${animeId}`;
+      case StreamProvider.HIANIME:
+        return `/api/stream/hianime?anime=${encodedTitle}&episode=${episode}&id=${animeId}`;
+      case StreamProvider.GOGOANIME:
+        return `/api/stream/gogoanime?anime=${encodedTitle}&episode=${episode}&id=${animeId}`;
+      case StreamProvider.ANIWATCH:
+        return `/api/stream/aniwatch?anime=${encodedTitle}&episode=${episode}&id=${animeId}`;
+      case StreamProvider.UNIVERSAL:
+        return `/api/stream/universal?anime=${encodedTitle}&episode=${episode}&id=${animeId}`;
       default:
         return "";
     }
