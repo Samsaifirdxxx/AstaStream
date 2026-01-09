@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
+import { ANIME } from "@consumet/extensions";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const anime = searchParams.get("anime") || "";
   const episode = searchParams.get("episode") || "1";
   const animeId = searchParams.get("id") || "";
-
-  // HiAnime.to direct streaming with better URL construction
-  const sanitizedTitle = anime.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
   const html = `
 <!DOCTYPE html>
@@ -16,6 +14,7 @@ export async function GET(request: Request) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Episode ${episode} - HiAnime</title>
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
   <style>
     * {
       margin: 0;
@@ -34,10 +33,9 @@ export async function GET(request: Request) {
       height: 100%;
       position: relative;
     }
-    video {
+    #player {
       width: 100%;
       height: 100%;
-      background: #000;
     }
     .loading {
       position: absolute;
@@ -67,6 +65,13 @@ export async function GET(request: Request) {
       padding: 20px;
       text-align: center;
     }
+    .plyr {
+      width: 100%;
+      height: 100%;
+    }
+    .plyr__video-wrapper {
+      background: #000;
+    }
     [class*="ad"], [id*="ad"], ins { display: none !important; }
   </style>
 </head>
@@ -76,9 +81,11 @@ export async function GET(request: Request) {
       <div class="spinner"></div>
       <div>Loading from HiAnime...</div>
     </div>
-    <video id="player" controls autoplay></video>
+    <video id="player" controls playsinline></video>
   </div>
 
+  <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <script>
     (function() {
       'use strict';
@@ -89,52 +96,104 @@ export async function GET(request: Request) {
 
       async function loadStream() {
         const loading = document.getElementById('loading');
-        const player = document.getElementById('player');
+        const videoElement = document.getElementById('player');
 
         try {
-          // First, search for the anime on HiAnime
-          const searchResponse = await fetch(\`/api/stream/search-anime?q=\${encodeURIComponent(animeTitle)}&anilistId=\${anilistId}\`);
+          // Fetch streaming sources from our backend API
+          const response = await fetch(\`/api/stream/hianime-sources?anime=\${encodeURIComponent(animeTitle)}&episode=\${episodeNum}&id=\${anilistId}\`);
 
-          if (!searchResponse.ok) {
-            throw new Error('Failed to find anime');
+          if (!response.ok) {
+            throw new Error('Failed to get streaming sources');
           }
 
-          const searchData = await searchResponse.json();
-          const hiAnimeId = searchData.anime.id;
+          const data = await response.json();
 
-          // Get episode sources
-          const sourcesResponse = await fetch(\`/api/stream/episode-sources?animeId=\${hiAnimeId}&episode=\${episodeNum}\`);
-
-          if (!sourcesResponse.ok) {
-            throw new Error('Failed to get episode sources');
+          if (!data.success || !data.sources || data.sources.length === 0) {
+            throw new Error('No video sources available');
           }
 
-          const sourcesData = await sourcesResponse.json();
+          // Get the best quality source
+          const source = data.sources.find(s => s.quality === '1080p' || s.quality === 'default') || data.sources[0];
+          const videoUrl = source.url;
 
-          if (sourcesData.sources && sourcesData.sources.length > 0) {
-            // Use the highest quality source
-            const source = sourcesData.sources.find(s => s.quality === '1080p' || s.quality === 'default') || sourcesData.sources[0];
+          // Check if HLS stream
+          if (videoUrl.includes('.m3u8') || source.isM3U8) {
+            if (Hls.isSupported()) {
+              const hls = new Hls({
+                enableWorker: true,
+                lowLatencyMode: true,
+                backBufferLength: 90
+              });
 
-            player.src = source.url;
+              hls.loadSource(videoUrl);
+              hls.attachMedia(videoElement);
 
-            // Add subtitles if available
-            if (sourcesData.subtitles && sourcesData.subtitles.length > 0) {
-              sourcesData.subtitles.forEach((sub, index) => {
-                const track = document.createElement('track');
-                track.kind = 'subtitles';
-                track.label = sub.lang || \`Subtitle \${index + 1}\`;
-                track.srclang = sub.lang || 'en';
-                track.src = sub.url;
-                if (index === 0) track.default = true;
-                player.appendChild(track);
+              hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                // Initialize Plyr
+                const player = new Plyr(videoElement, {
+                  controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'fullscreen'],
+                  settings: ['quality', 'speed'],
+                  quality: {
+                    default: 1080,
+                    options: [1080, 720, 480, 360]
+                  }
+                });
+
+                // Add subtitles if available
+                if (data.subtitles && data.subtitles.length > 0) {
+                  data.subtitles.forEach((sub, index) => {
+                    const track = document.createElement('track');
+                    track.kind = 'subtitles';
+                    track.label = sub.lang || \`Subtitle \${index + 1}\`;
+                    track.srclang = sub.lang || 'en';
+                    track.src = sub.url;
+                    if (index === 0) track.default = true;
+                    videoElement.appendChild(track);
+                  });
+                }
+
+                player.play();
+
+                setTimeout(() => {
+                  if (loading) loading.style.display = 'none';
+                }, 500);
+              });
+
+              hls.on(Hls.Events.ERROR, function(event, data) {
+                if (data.fatal) {
+                  console.error('HLS Error:', data);
+                  throw new Error('Failed to load video stream');
+                }
+              });
+            } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+              // Native HLS support (Safari)
+              videoElement.src = videoUrl;
+
+              const player = new Plyr(videoElement, {
+                controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'fullscreen']
+              });
+
+              videoElement.addEventListener('loadedmetadata', function() {
+                player.play();
+                setTimeout(() => {
+                  if (loading) loading.style.display = 'none';
+                }, 500);
               });
             }
-
-            setTimeout(() => {
-              if (loading) loading.style.display = 'none';
-            }, 1000);
           } else {
-            throw new Error('No video sources available');
+            // Direct MP4 video
+            videoElement.src = videoUrl;
+
+            const player = new Plyr(videoElement, {
+              controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen']
+            });
+
+            videoElement.addEventListener('loadedmetadata', function() {
+              player.play();
+              setTimeout(() => {
+                if (loading) loading.style.display = 'none';
+              }, 500);
+            });
           }
         } catch (error) {
           console.error('Error loading stream:', error);
@@ -144,7 +203,12 @@ export async function GET(request: Request) {
         }
       }
 
-      loadStream();
+      // Start loading when page is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadStream);
+      } else {
+        loadStream();
+      }
 
       // Remove ads periodically
       setInterval(() => {

@@ -6,8 +6,6 @@ export async function GET(request: Request) {
   const episode = searchParams.get("episode") || "1";
   const animeId = searchParams.get("id") || "";
 
-  const sanitizedTitle = anime.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-
   const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -15,6 +13,7 @@ export async function GET(request: Request) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Episode ${episode} - GoGoAnime</title>
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
   <style>
     * {
       margin: 0;
@@ -33,10 +32,9 @@ export async function GET(request: Request) {
       height: 100%;
       position: relative;
     }
-    iframe {
+    #player {
       width: 100%;
       height: 100%;
-      border: none;
     }
     .loading {
       position: absolute;
@@ -61,7 +59,24 @@ export async function GET(request: Request) {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    [class*="ad"], [id*="ad"], ins { display: none !important; }
+    .error {
+      color: #fb7185;
+      padding: 20px;
+      text-align: center;
+    }
+    .plyr {
+      width: 100%;
+      height: 100%;
+    }
+    .plyr__video-wrapper {
+      background: #000;
+    }
+    [class*="ad"], [id*="ad"], ins, .ad-container, .advertisement {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
   </style>
 </head>
 <body>
@@ -70,54 +85,177 @@ export async function GET(request: Request) {
       <div class="spinner"></div>
       <div>Loading from GoGoAnime...</div>
     </div>
-    <iframe id="player" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups allow-modals"></iframe>
+    <video id="player" controls playsinline></video>
   </div>
 
+  <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <script>
     (function() {
       'use strict';
 
-      window.open = () => null;
+      // Block all popups and ads
+      window.open = function() { return null; };
+      window.alert = function() { return null; };
 
-      const streamSources = [
-        'https://anitaku.pe/streaming.php?id=${sanitizedTitle}-episode-${episode}',
-        'https://gogoanime3.co/${sanitizedTitle}-episode-${episode}',
-        'https://embtaku.pro/streaming.php?id=${sanitizedTitle}-episode-${episode}',
-        'https://www1.gogoanime3.com/${sanitizedTitle}-episode-${episode}',
-      ];
+      const anilistId = '${animeId}';
+      const episodeNum = '${episode}';
+      const animeTitle = '${anime}';
 
-      let sourceIndex = 0;
-
-      function loadStream() {
-        const iframe = document.getElementById('player');
+      async function loadStream() {
         const loading = document.getElementById('loading');
+        const videoElement = document.getElementById('player');
 
-        iframe.src = streamSources[sourceIndex];
+        try {
+          // Fetch streaming sources from our backend API
+          const response = await fetch(\`/api/stream/gogoanime-sources?anime=\${encodeURIComponent(animeTitle)}&episode=\${episodeNum}&id=\${anilistId}\`);
 
-        iframe.onload = function() {
-          setTimeout(() => {
-            if (loading) loading.style.display = 'none';
-          }, 2000);
-        };
-
-        iframe.onerror = function() {
-          sourceIndex++;
-          if (sourceIndex < streamSources.length) {
-            console.log('Trying backup source', sourceIndex);
-            setTimeout(loadStream, 1000);
-          } else {
-            if (loading) {
-              loading.innerHTML = '<div style="color: #fb7185;">Unable to load stream. Please try another server.</div>';
-            }
+          if (!response.ok) {
+            throw new Error('Failed to get streaming sources');
           }
-        };
+
+          const data = await response.json();
+
+          if (!data.success || !data.sources || data.sources.length === 0) {
+            throw new Error('No video sources available');
+          }
+
+          // Get the best quality source
+          const source = data.sources.find(s => s.quality === '1080p' || s.quality === 'default') || data.sources[0];
+          const videoUrl = source.url;
+
+          // Check if HLS stream
+          if (videoUrl.includes('.m3u8') || source.isM3U8) {
+            if (Hls.isSupported()) {
+              const hls = new Hls({
+                enableWorker: true,
+                lowLatencyMode: true,
+                backBufferLength: 90,
+                maxBufferLength: 30,
+                maxMaxBufferLength: 600,
+                xhrSetup: function(xhr, url) {
+                  xhr.withCredentials = false;
+                }
+              });
+
+              hls.loadSource(videoUrl);
+              hls.attachMedia(videoElement);
+
+              hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                // Initialize Plyr
+                const player = new Plyr(videoElement, {
+                  controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'fullscreen'],
+                  settings: ['quality', 'speed'],
+                  quality: {
+                    default: 1080,
+                    options: [1080, 720, 480, 360]
+                  }
+                });
+
+                // Add subtitles if available
+                if (data.subtitles && data.subtitles.length > 0) {
+                  data.subtitles.forEach((sub, index) => {
+                    const track = document.createElement('track');
+                    track.kind = 'subtitles';
+                    track.label = sub.lang || \`Subtitle \${index + 1}\`;
+                    track.srclang = sub.lang || 'en';
+                    track.src = sub.url;
+                    if (index === 0) track.default = true;
+                    videoElement.appendChild(track);
+                  });
+                }
+
+                player.play().catch(e => console.log('Autoplay prevented:', e));
+
+                setTimeout(() => {
+                  if (loading) loading.style.display = 'none';
+                }, 500);
+              });
+
+              hls.on(Hls.Events.ERROR, function(event, data) {
+                if (data.fatal) {
+                  console.error('HLS Error:', data);
+                  switch (data.type) {
+                    case Hls.ErrorTypes.NETWORK_ERROR:
+                      console.log('Network error, trying to recover...');
+                      hls.startLoad();
+                      break;
+                    case Hls.ErrorTypes.MEDIA_ERROR:
+                      console.log('Media error, trying to recover...');
+                      hls.recoverMediaError();
+                      break;
+                    default:
+                      throw new Error('Failed to load video stream');
+                  }
+                }
+              });
+            } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+              // Native HLS support (Safari)
+              videoElement.src = videoUrl;
+
+              const player = new Plyr(videoElement, {
+                controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'fullscreen']
+              });
+
+              videoElement.addEventListener('loadedmetadata', function() {
+                player.play().catch(e => console.log('Autoplay prevented:', e));
+                setTimeout(() => {
+                  if (loading) loading.style.display = 'none';
+                }, 500);
+              });
+            }
+          } else {
+            // Direct MP4 video
+            videoElement.src = videoUrl;
+
+            const player = new Plyr(videoElement, {
+              controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen']
+            });
+
+            videoElement.addEventListener('loadedmetadata', function() {
+              player.play().catch(e => console.log('Autoplay prevented:', e));
+              setTimeout(() => {
+                if (loading) loading.style.display = 'none';
+              }, 500);
+            });
+          }
+        } catch (error) {
+          console.error('Error loading stream:', error);
+          if (loading) {
+            loading.innerHTML = '<div class="error">Unable to load stream. Please try another server.</div>';
+          }
+        }
       }
 
-      loadStream();
+      // Start loading when page is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadStream);
+      } else {
+        loadStream();
+      }
 
+      // Aggressive ad removal
       setInterval(() => {
-        document.querySelectorAll('[class*="ad"],[id*="ad"],ins').forEach(e => e.remove());
-      }, 300);
+        document.querySelectorAll('[class*="ad"],[id*="ad"],ins,.ad-container,.advertisement').forEach(e => {
+          e.remove();
+        });
+      }, 100);
+
+      // Block ad scripts
+      const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          mutation.addedNodes.forEach(function(node) {
+            if (node.tagName === 'SCRIPT' || node.tagName === 'IFRAME') {
+              const src = node.src || node.innerHTML;
+              if (src && (src.includes('ad') || src.includes('doubleclick') || src.includes('adsystem'))) {
+                node.remove();
+              }
+            }
+          });
+        });
+      });
+
+      observer.observe(document.body, { childList: true, subtree: true });
 
     })();
   </script>

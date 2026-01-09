@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@consumet/extensions": "^1.8.7",
     "aniwatch": "^2.24.3",
     "axios": "^1.13.2",
     "cheerio": "^1.1.2",
