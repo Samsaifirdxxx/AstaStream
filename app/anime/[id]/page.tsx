@@ -6,9 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Play,
   Star,
-  Calendar,
-  Clock,
-  TrendingUp,
   ChevronLeft,
   Film,
   Sparkles,
@@ -52,12 +49,14 @@ const StreamProvider = {
 
 type StreamProviderType = (typeof StreamProvider)[keyof typeof StreamProvider];
 
-const providerNames = {
+const providerNames: Record<StreamProviderType, string> = {
   [StreamProvider.VIDROCK]: "VidRock",
   [StreamProvider.GOGO]: "GogoAnime",
   [StreamProvider.ZORO]: "Zoro",
   [StreamProvider.PAHE]: "AnimeaPahe",
 };
+
+const providers = Object.values(StreamProvider) as StreamProviderType[];
 
 export default function AnimePage() {
   const params = useParams();
@@ -72,21 +71,24 @@ export default function AnimePage() {
   const [showPlayer, setShowPlayer] = useState(false);
 
   useEffect(() => {
-    if (animeId) {
-      fetch(`/api/anilist/media/${animeId}`)
-        .then((r) => r.json())
-        .then((data) => {
-          if (data.Media) {
-            setAnime(data.Media);
-          }
-          setLoading(false);
-        })
-        .catch(() => setLoading(false));
-    }
+    if (!animeId) return;
+
+    setLoading(true);
+    fetch(`/api/anilist/media/${animeId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.Media) setAnime(data.Media);
+        else setAnime(null);
+        setLoading(false);
+      })
+      .catch(() => {
+        setAnime(null);
+        setLoading(false);
+      });
   }, [animeId]);
 
-  const getTitle = (anime: AnimeDetails) =>
-    anime.title?.english || anime.title?.romaji || anime.title?.native || "Untitled";
+  const getTitle = (a: AnimeDetails) =>
+    a.title?.english || a.title?.romaji || a.title?.native || "Untitled";
 
   const cleanDescription = (desc?: string) => {
     if (!desc) return "";
@@ -168,7 +170,10 @@ export default function AnimePage() {
             </span>
           </Link>
 
-          <Link href="/" className="flex items-center gap-2 text-muted hover:text-foreground transition-colors">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-muted hover:text-foreground transition-colors"
+          >
             <ChevronLeft className="w-5 h-5" />
             Back
           </Link>
@@ -191,6 +196,7 @@ export default function AnimePage() {
                 fill
                 className="object-cover"
                 priority
+                sizes="100vw"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
             </motion.div>
@@ -215,6 +221,7 @@ export default function AnimePage() {
                       fill
                       className="object-cover"
                       priority
+                      sizes="(max-width: 1024px) 60vw, 300px"
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-accent/20 to-accent-2/20" />
@@ -319,17 +326,16 @@ export default function AnimePage() {
                     <Server className="w-5 h-5 text-accent" />
                     Select Stream Provider
                   </h2>
+
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {Object.entries(StreamProvider).map(([key, provider]) => (
+                    {providers.map((provider) => (
                       <motion.button
                         key={provider}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => setSelectedProvider(provider)}
                         className={`btn ${
-                          selectedProvider === provider
-                            ? "ring-2 ring-accent"
-                            : "opacity-60"
+                          selectedProvider === provider ? "ring-2 ring-accent" : "opacity-60"
                         }`}
                       >
                         {providerNames[provider]}
@@ -350,6 +356,7 @@ export default function AnimePage() {
                       <PlayCircle className="w-5 h-5 text-accent" />
                       Episodes
                     </h2>
+
                     <div className="grid grid-cols-5 md:grid-cols-10 gap-3 max-h-[400px] overflow-y-auto pr-2">
                       {[...Array(anime.episodes)].map((_, i) => {
                         const ep = i + 1;
@@ -392,6 +399,7 @@ export default function AnimePage() {
                           Episode {selectedEpisode} - {providerNames[selectedProvider]}
                         </h3>
                       </div>
+
                       <div className="relative w-full aspect-video bg-black">
                         <iframe
                           src={getStreamUrl(selectedProvider, selectedEpisode)}
@@ -429,9 +437,7 @@ export default function AnimePage() {
               <span className="font-semibold">Created by @Hellfirez3643</span>
             </a>
           </motion.div>
-          <p className="text-muted text-sm">
-            AstaStream - Your Ultimate Anime Streaming Platform
-          </p>
+          <p className="text-muted text-sm">AstaStream - Your Ultimate Anime Streaming Platform</p>
         </div>
       </motion.footer>
     </div>
