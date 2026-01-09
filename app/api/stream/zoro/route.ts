@@ -45,7 +45,7 @@ export async function GET(request: Request) {
       <div class="spinner"></div>
       <div>Loading from Zoro...</div>
     </div>
-    <iframe id="player" allow="autoplay; fullscreen; encrypted-media" allowfullscreen sandbox="allow-scripts allow-same-origin allow-presentation"></iframe>
+    <iframe id="player" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups allow-modals"></iframe>
   </div>
 
   <script>
@@ -54,9 +54,10 @@ export async function GET(request: Request) {
       window.open = () => null;
 
       const sources = [
+        'https://hianime.to/watch/${animeId}?ep=${episode}',
         'https://aniwatch.to/watch/${animeId}?ep=${episode}',
-        'https://zoro.to/watch/${animeId}?ep=${episode}',
-        'https://hianime.to/watch/${animeId}?ep=${episode}'
+        'https://9anime.to/watch/${animeId}?ep=${episode}',
+        'https://anix.to/watch/${animeId}?ep=${episode}'
       ];
 
       let idx = 0;

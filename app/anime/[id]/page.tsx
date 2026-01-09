@@ -188,7 +188,7 @@ export default function AnimePage() {
               initial={{ opacity: 0, scale: 1.1 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8 }}
-              className="relative -mx-4 h-[400px] mb-8 overflow-hidden"
+              className="relative -mx-4 h-[200px] sm:h-[300px] md:h-[400px] mb-8 overflow-hidden"
             >
               <Image
                 src={anime.bannerImage}
@@ -202,7 +202,7 @@ export default function AnimePage() {
             </motion.div>
           )}
 
-          <div className="grid lg:grid-cols-[280px,1fr] xl:grid-cols-[320px,1fr] gap-6 md:gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-[280px,1fr] xl:grid-cols-[320px,1fr] gap-6 md:gap-8">
             {/* Sidebar */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
@@ -289,7 +289,7 @@ export default function AnimePage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-accent to-accent-2 bg-clip-text text-transparent leading-tight">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 bg-gradient-to-r from-accent to-accent-2 bg-clip-text text-transparent leading-tight">
                   {getTitle(anime)}
                 </h1>
 
@@ -327,7 +327,7 @@ export default function AnimePage() {
                     Select Stream Provider
                   </h2>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
                     {providers.map((provider) => (
                       <motion.button
                         key={provider}
@@ -357,7 +357,7 @@ export default function AnimePage() {
                       Episodes
                     </h2>
 
-                    <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-2 md:gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="grid grid-cols-4 xs:grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-2 md:gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                       {[...Array(anime.episodes)].map((_, i) => {
                         const ep = i + 1;
                         return (
@@ -405,8 +405,8 @@ export default function AnimePage() {
                           src={getStreamUrl(selectedProvider, selectedEpisode)}
                           className="w-full h-full"
                           allowFullScreen
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          sandbox="allow-scripts allow-same-origin allow-presentation"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                          sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups allow-modals"
                         />
                       </div>
                     </motion.div>

@@ -70,19 +70,19 @@ export async function GET(request: Request) {
       <div class="spinner"></div>
       <div>Loading from GogoAnime...</div>
     </div>
-    <iframe id="player" allow="autoplay; fullscreen; encrypted-media" allowfullscreen sandbox="allow-scripts allow-same-origin allow-presentation"></iframe>
+    <iframe id="player" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups allow-modals"></iframe>
   </div>
 
   <script>
     (function() {
       'use strict';
 
-      // Multiple streaming sources
+      // Multiple streaming sources with better working APIs
       const streamSources = [
-        'https://gogoanime.lu/streaming.php?id=${sanitizedTitle}-episode-${episode}',
-        'https://gogoplay.io/streaming.php?id=${sanitizedTitle}-episode-${episode}',
+        'https://goload.pro/streaming.php?id=${sanitizedTitle}-episode-${episode}',
+        'https://gogohd.net/streaming.php?id=${sanitizedTitle}-episode-${episode}',
         'https://embtaku.pro/streaming.php?id=${sanitizedTitle}-episode-${episode}',
-        'https://www.mp4upload.com/embed-${animeId}${episode}.html'
+        'https://2anime.xyz/embed/${sanitizedTitle}-episode-${episode}'
       ];
 
       let sourceIndex = 0;

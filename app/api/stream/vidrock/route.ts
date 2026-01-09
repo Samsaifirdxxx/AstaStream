@@ -69,7 +69,7 @@ export async function GET(request: Request) {
       <div class="spinner"></div>
       <div>Loading Episode ${episode}...</div>
     </div>
-    <iframe id="player" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>
+    <iframe id="player" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups allow-modals"></iframe>
   </div>
 
   <script>
@@ -82,11 +82,12 @@ export async function GET(request: Request) {
         if (loading) loading.style.display = 'none';
       }, 2000);
 
-      // Alternative streaming sources
+      // Multiple streaming sources with better working APIs
       const sources = [
-        'https://vidrock.net/embed/${animeId}-episode-${episode}',
-        'https://gogoanime.lu/streaming.php?id=${animeId}-episode-${episode}',
-        'https://www.mp4upload.com/embed-${animeId}${episode}.html'
+        'https://2anime.xyz/embed/${animeId}-episode-${episode}',
+        'https://aniwatch.to/watch/${animeId}?ep=${episode}',
+        'https://goload.pro/streaming.php?id=${animeId}-episode-${episode}',
+        'https://gogohd.net/streaming.php?id=${animeId}-episode-${episode}'
       ];
 
       let currentSource = 0;

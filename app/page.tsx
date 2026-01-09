@@ -132,18 +132,18 @@ export default function Home() {
             className="text-center mb-16"
           >
             <motion.h1
-              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 bg-gradient-to-r from-accent via-accent-2 to-danger bg-clip-text text-transparent leading-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-bold mb-6 bg-gradient-to-r from-accent via-accent-2 to-danger bg-clip-text text-transparent leading-tight"
               initial={{ y: 20 }}
               animate={{ y: 0 }}
               transition={{ delay: 0.2 }}
             >
               Watch Anime
               <br />
-              <span className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl">Without Limits</span>
+              <span className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl">Without Limits</span>
             </motion.h1>
 
             <motion.p
-              className="text-lg sm:text-xl text-muted mb-10 max-w-2xl mx-auto px-4"
+              className="text-sm sm:text-base md:text-lg lg:text-xl text-muted mb-10 max-w-2xl mx-auto px-4"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3 }}
@@ -166,9 +166,9 @@ export default function Home() {
                     ? "0 0 40px rgba(167, 139, 250, 0.3)"
                     : "0 0 0px rgba(167, 139, 250, 0)",
                 }}
-                className="glass rounded-full flex items-center px-6 py-4 transition-all"
+                className="glass rounded-full flex items-center px-4 sm:px-6 py-3 sm:py-4 transition-all"
               >
-                <Search className="w-5 h-5 text-muted mr-3" />
+                <Search className="w-4 h-4 sm:w-5 sm:h-5 text-muted mr-2 sm:mr-3" />
                 <input
                   type="text"
                   placeholder="Search for anime..."
@@ -176,13 +176,13 @@ export default function Home() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setSearchFocused(true)}
                   onBlur={() => setSearchFocused(false)}
-                  className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted"
+                  className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted text-sm sm:text-base"
                 />
                 <motion.button
                   type="submit"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="ml-3 btn"
+                  className="ml-2 sm:ml-3 btn text-sm sm:text-base"
                 >
                   Search
                 </motion.button>

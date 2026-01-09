@@ -287,12 +287,72 @@ html {
 
 /* Mobile responsive optimizations */
 @media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
   .card-hover:hover {
     transform: translateY(-3px) scale(1.02);
   }
 
+  .btn {
+    padding: 0.6rem 0.9rem;
+    font-size: 0.875rem;
+  }
+
   .btn:hover {
     transform: translateY(-1px);
+  }
+
+  .glass {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+  body {
+    font-size: 13px;
+  }
+
+  .btn {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.8125rem;
+  }
+
+  .tag {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .glass {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .btn:active {
+    transform: scale(0.96);
+  }
+
+  .card-hover {
+    transition: transform 0.2s ease;
+  }
+
+  /* Disable hover effects on touch devices */
+  .card-hover:hover {
+    transform: none;
+  }
+
+  /* Enable touch feedback */
+  .card-hover:active {
+    transform: scale(0.98);
   }
 }
 

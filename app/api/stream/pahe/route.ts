@@ -47,7 +47,7 @@ export async function GET(request: Request) {
       <div class="spinner"></div>
       <div>Loading from AnimePahe...</div>
     </div>
-    <iframe id="player" allow="autoplay; fullscreen; encrypted-media" allowfullscreen sandbox="allow-scripts allow-same-origin allow-presentation"></iframe>
+    <iframe id="player" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups allow-modals"></iframe>
   </div>
 
   <script>
@@ -55,9 +55,10 @@ export async function GET(request: Request) {
       window.open = () => null;
 
       const sources = [
-        'https://animepahe.com/play/${animeId}/${episode}',
-        'https://kwik.cx/e/${animeId}${episode}',
-        'https://www.mp4upload.com/embed-${animeId}${episode}.html'
+        'https://animepahe.ru/play/${animeId}/${episode}',
+        'https://pahe.win/play/${animeId}/${episode}',
+        'https://kwik.si/e/${animeId}${episode}',
+        'https://animepahe.com/play/${animeId}/${episode}'
       ];
 
       let i = 0;
