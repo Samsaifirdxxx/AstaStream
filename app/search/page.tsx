@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Search, Play, Star, TrendingUp, Film, Sparkles } from "lucide-react";
-import { Background } from "./components/Background";
+import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
+import { Search, Star, Play, Sparkles, ChevronLeft, Loader2 } from "lucide-react";
+import { Background } from "../components/Background";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -23,6 +24,7 @@ type AnimeMedia = {
   episodes?: number;
   genres?: string[];
   format?: string;
+  description?: string;
 };
 
 const container = {
@@ -30,39 +32,43 @@ const container = {
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.1,
+      staggerChildren: 0.06,
     },
   },
 };
 
 const item = {
-  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  hidden: { opacity: 0, y: 20, scale: 0.95 },
   show: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { type: "spring", bounce: 0.3, duration: 0.7 },
+    transition: { type: "spring", bounce: 0.3, duration: 0.6 },
   },
 };
 
-export default function Home() {
-  const [trending, setTrending] = useState<AnimeMedia[]>([]);
+export default function SearchPage() {
+  const searchParams = useSearchParams();
+  const query = searchParams?.get("q") || "";
+
+  const [results, setResults] = useState<AnimeMedia[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchFocused, setSearchFocused] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(query);
 
   useEffect(() => {
-    fetch("/api/anilist/trending?perPage=20")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.Page?.media) {
-          setTrending(data.Page.media);
-        }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+    if (query) {
+      setLoading(true);
+      fetch(`/api/anilist/search?q=${encodeURIComponent(query)}&perPage=30`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.Page?.media) {
+            setResults(data.Page.media);
+          }
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
+    }
+  }, [query]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,112 +105,93 @@ export default function Home() {
             </span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2 text-muted hover:text-foreground transition-colors">
-              <TrendingUp className="w-4 h-4" />
-              Trending
-            </Link>
-            <Link href="/browse" className="flex items-center gap-2 text-muted hover:text-foreground transition-colors">
-              <Film className="w-4 h-4" />
-              Browse
-            </Link>
-          </nav>
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-muted hover:text-foreground transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
+            Back
+          </Link>
         </div>
       </motion.header>
 
       <main className="relative z-10 pt-24 pb-12">
         <div className="container mx-auto px-4">
-          {/* Hero Section */}
+          {/* Search Section */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, type: "spring" }}
-            className="text-center mb-16"
+            transition={{ duration: 0.6 }}
+            className="max-w-3xl mx-auto mb-12"
           >
-            <motion.h1
-              className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-accent via-accent-2 to-danger bg-clip-text text-transparent"
-              initial={{ y: 20 }}
-              animate={{ y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              Watch Anime
-              <br />
-              <span className="text-5xl md:text-6xl">Without Limits</span>
-            </motion.h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-8 text-center bg-gradient-to-r from-accent via-accent-2 to-danger bg-clip-text text-transparent">
+              Search Anime
+            </h1>
 
-            <motion.p
-              className="text-xl text-muted mb-10 max-w-2xl mx-auto"
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              Stream thousands of anime episodes in HD quality with multiple providers
-            </motion.p>
-
-            {/* Search Bar */}
             <motion.form
               onSubmit={handleSearch}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="max-w-2xl mx-auto relative"
+              whileHover={{ scale: 1.01 }}
+              className="glass rounded-full flex items-center px-6 py-4"
             >
-              <motion.div
-                animate={{
-                  scale: searchFocused ? 1.02 : 1,
-                  boxShadow: searchFocused
-                    ? "0 0 40px rgba(167, 139, 250, 0.3)"
-                    : "0 0 0px rgba(167, 139, 250, 0)",
-                }}
-                className="glass rounded-full flex items-center px-6 py-4 transition-all"
+              <Search className="w-5 h-5 text-muted mr-3" />
+              <input
+                type="text"
+                placeholder="Search for anime..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted"
+                autoFocus
+              />
+              <motion.button
+                type="submit"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="ml-3 btn"
               >
-                <Search className="w-5 h-5 text-muted mr-3" />
-                <input
-                  type="text"
-                  placeholder="Search for anime..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => setSearchFocused(true)}
-                  onBlur={() => setSearchFocused(false)}
-                  className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted"
-                />
-                <motion.button
-                  type="submit"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="ml-3 btn"
-                >
-                  Search
-                </motion.button>
-              </motion.div>
+                Search
+              </motion.button>
             </motion.form>
           </motion.div>
 
-          {/* Trending Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
-              <TrendingUp className="w-8 h-8 text-accent" />
-              Trending Now
-            </h2>
+          {/* Results */}
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              >
+                <Loader2 className="w-12 h-12 text-accent" />
+              </motion.div>
+            </div>
+          ) : results.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-20"
+            >
+              <h2 className="text-2xl font-bold mb-4">No results found</h2>
+              <p className="text-muted mb-8">Try searching with different keywords</p>
+              <Link href="/" className="btn">
+                Go Home
+              </Link>
+            </motion.div>
+          ) : (
+            <motion.div>
+              <motion.h2
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="text-2xl font-bold mb-6"
+              >
+                Found {results.length} results for "{query}"
+              </motion.h2>
 
-            {loading ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {[...Array(10)].map((_, i) => (
-                  <div key={i} className="skeleton rounded-2xl aspect-[2/3] animate-pulse" />
-                ))}
-              </div>
-            ) : (
               <motion.div
                 variants={container}
                 initial="hidden"
                 animate="show"
                 className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
               >
-                {trending.map((anime) => (
+                {results.map((anime) => (
                   <motion.div key={anime.id} variants={item}>
                     <Link href={`/anime/${anime.id}`}>
                       <motion.div
@@ -278,23 +265,20 @@ export default function Home() {
                   </motion.div>
                 ))}
               </motion.div>
-            )}
-          </motion.div>
+            </motion.div>
+          )}
         </div>
       </main>
 
-      {/* Footer with Signature */}
+      {/* Footer */}
       <motion.footer
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
+        transition={{ delay: 0.8 }}
         className="relative z-10 glass mt-20 py-8"
       >
         <div className="container mx-auto px-4 text-center">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="inline-block mb-4"
-          >
+          <motion.div whileHover={{ scale: 1.05 }} className="inline-block mb-4">
             <a
               href="https://t.me/Hellfirez3643"
               target="_blank"
