@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { Search, Play, Star, TrendingUp, Film, Sparkles } from "lucide-react";
 import { Background } from "./components/Background";
 import Link from "next/link";
@@ -25,7 +25,8 @@ type AnimeMedia = {
   format?: string;
 };
 
-const container: Variants = {
+// ✅ Use `satisfies Variants` to avoid TS widening / transition.type mismatch
+const container = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
@@ -34,21 +35,22 @@ const container: Variants = {
       delayChildren: 0.1,
     },
   },
-};
+} satisfies Variants;
 
-const item: Variants = {
+const item = {
   hidden: { opacity: 0, y: 30, scale: 0.95 },
   show: {
     opacity: 1,
     y: 0,
     scale: 1,
     transition: {
-      type: "spring",
+      // ✅ literal type ensures it matches Framer Motion Transition typing
+      type: "spring" as const,
       bounce: 0.3,
       duration: 0.7,
     },
   },
-};
+} satisfies Variants;
 
 export default function Home() {
   const [trending, setTrending] = useState<AnimeMedia[]>([]);
@@ -60,9 +62,7 @@ export default function Home() {
     fetch("/api/anilist/trending?perPage=20")
       .then((r) => r.json())
       .then((data) => {
-        if (data.Page?.media) {
-          setTrending(data.Page.media);
-        }
+        if (data.Page?.media) setTrending(data.Page.media);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -291,7 +291,7 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Footer with Signature */}
+      {/* Footer */}
       <motion.footer
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
