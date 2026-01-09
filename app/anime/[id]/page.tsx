@@ -41,19 +41,19 @@ type AnimeDetails = {
 };
 
 const StreamProvider = {
-  VIDROCK: "vidrock",
-  GOGO: "gogo",
-  ZORO: "zoro",
-  PAHE: "pahe",
+  SERVER1: "server1",
+  SERVER2: "server2",
+  SERVER3: "server3",
+  SERVER4: "server4",
 } as const;
 
 type StreamProviderType = (typeof StreamProvider)[keyof typeof StreamProvider];
 
 const providerNames: Record<StreamProviderType, string> = {
-  [StreamProvider.VIDROCK]: "VidRock",
-  [StreamProvider.GOGO]: "GogoAnime",
-  [StreamProvider.ZORO]: "Zoro",
-  [StreamProvider.PAHE]: "AnimeaPahe",
+  [StreamProvider.SERVER1]: "Server 1",
+  [StreamProvider.SERVER2]: "Server 2",
+  [StreamProvider.SERVER3]: "Server 3",
+  [StreamProvider.SERVER4]: "Server 4",
 };
 
 const providers = Object.values(StreamProvider) as StreamProviderType[];
@@ -66,7 +66,7 @@ export default function AnimePage() {
   const [loading, setLoading] = useState(true);
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   const [selectedProvider, setSelectedProvider] = useState<StreamProviderType>(
-    StreamProvider.VIDROCK
+    StreamProvider.SERVER1
   );
   const [showPlayer, setShowPlayer] = useState(false);
 
@@ -104,14 +104,14 @@ export default function AnimePage() {
     const encodedTitle = encodeURIComponent(title);
 
     switch (provider) {
-      case StreamProvider.VIDROCK:
-        return `/api/stream/vidrock?anime=${encodedTitle}&episode=${episode}&id=${animeId}`;
-      case StreamProvider.GOGO:
-        return `/api/stream/gogo?anime=${encodedTitle}&episode=${episode}&id=${animeId}`;
-      case StreamProvider.ZORO:
-        return `/api/stream/zoro?anime=${encodedTitle}&episode=${episode}&id=${animeId}`;
-      case StreamProvider.PAHE:
-        return `/api/stream/pahe?anime=${encodedTitle}&episode=${episode}&id=${animeId}`;
+      case StreamProvider.SERVER1:
+        return `/api/stream/server1?anime=${encodedTitle}&episode=${episode}&id=${animeId}`;
+      case StreamProvider.SERVER2:
+        return `/api/stream/server2?anime=${encodedTitle}&episode=${episode}&id=${animeId}`;
+      case StreamProvider.SERVER3:
+        return `/api/stream/server3?anime=${encodedTitle}&episode=${episode}&id=${animeId}`;
+      case StreamProvider.SERVER4:
+        return `/api/stream/server4?anime=${encodedTitle}&episode=${episode}&id=${animeId}`;
       default:
         return "";
     }

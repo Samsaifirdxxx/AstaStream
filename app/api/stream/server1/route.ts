@@ -6,8 +6,8 @@ export async function GET(request: Request) {
   const episode = searchParams.get("episode") || "1";
   const animeId = searchParams.get("id") || "";
 
-  // VidRock streaming implementation with ad blocking
-  const embedUrl = `https://vidrock.net/embed/${animeId}-episode-${episode}`;
+  // Server 1 - HiAnime direct streaming
+  const sanitizedTitle = anime.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
   const html = `
 <!DOCTYPE html>
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Episode ${episode}</title>
+  <title>Episode ${episode} - Server 1</title>
   <style>
     * {
       margin: 0;
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
       height: 100%;
       overflow: hidden;
       background: #000;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
     #player-container {
       width: 100%;
@@ -44,14 +44,15 @@ export async function GET(request: Request) {
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      color: #a78bfa;
+      color: #22d3ee;
       font-size: 16px;
       text-align: center;
+      z-index: 100;
     }
     .spinner {
-      border: 3px solid rgba(167, 139, 250, 0.2);
+      border: 3px solid rgba(34, 211, 238, 0.2);
       border-radius: 50%;
-      border-top: 3px solid #a78bfa;
+      border-top: 3px solid #22d3ee;
       width: 40px;
       height: 40px;
       animation: spin 1s linear infinite;
@@ -61,13 +62,14 @@ export async function GET(request: Request) {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    [class*="ad"], [id*="ad"], ins { display: none !important; }
   </style>
 </head>
 <body>
   <div id="player-container">
-    <div class="loading">
+    <div class="loading" id="loading">
       <div class="spinner"></div>
-      <div>Loading Episode ${episode}...</div>
+      <div>Loading from Server 1...</div>
     </div>
     <iframe id="player" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups allow-modals"></iframe>
   </div>
@@ -76,36 +78,50 @@ export async function GET(request: Request) {
     (function() {
       'use strict';
 
-      // Remove loading overlay after delay
-      setTimeout(() => {
-        const loading = document.querySelector('.loading');
-        if (loading) loading.style.display = 'none';
-      }, 2000);
+      // Block popups
+      window.open = () => null;
 
-      // Multiple streaming sources with better working APIs
-      const sources = [
-        'https://2anime.xyz/embed/${animeId}-episode-${episode}',
-        'https://aniwatch.to/watch/${animeId}?ep=${episode}',
-        'https://goload.pro/streaming.php?id=${animeId}-episode-${episode}',
-        'https://gogohd.net/streaming.php?id=${animeId}-episode-${episode}'
+      // Multiple streaming sources with working APIs
+      const streamSources = [
+        'https://hianime.to/watch/${sanitizedTitle}-${animeId}?ep=${episode}',
+        'https://hianime.to/embed/${sanitizedTitle}-${animeId}?ep=${episode}',
+        'https://aniwatch.to/watch/${sanitizedTitle}-${animeId}?ep=${episode}',
+        'https://9anime.to/watch/${sanitizedTitle}?ep=${episode}'
       ];
 
-      let currentSource = 0;
+      let sourceIndex = 0;
 
-      function loadPlayer() {
+      function loadStream() {
         const iframe = document.getElementById('player');
-        iframe.src = sources[currentSource];
+        const loading = document.getElementById('loading');
+
+        iframe.src = streamSources[sourceIndex];
+
+        iframe.onload = function() {
+          setTimeout(() => {
+            if (loading) loading.style.display = 'none';
+          }, 2000);
+        };
 
         iframe.onerror = function() {
-          currentSource++;
-          if (currentSource < sources.length) {
-            console.log('Trying alternative source...');
-            setTimeout(loadPlayer, 1000);
+          sourceIndex++;
+          if (sourceIndex < streamSources.length) {
+            console.log('Trying backup source', sourceIndex);
+            setTimeout(loadStream, 1000);
+          } else {
+            if (loading) {
+              loading.innerHTML = '<div style="color: #fb7185;">Unable to load stream. Please try another server.</div>';
+            }
           }
         };
       }
 
-      loadPlayer();
+      loadStream();
+
+      // Remove ads periodically
+      setInterval(() => {
+        document.querySelectorAll('[class*="ad"],[id*="ad"],ins').forEach(e => e.remove());
+      }, 300);
 
     })();
   </script>

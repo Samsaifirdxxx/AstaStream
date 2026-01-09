@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const episode = searchParams.get("episode") || "1";
   const animeId = searchParams.get("id") || "";
 
-  // GogoAnime streaming with ad blocking
+  // Server 2 - GogoAnime streaming sources
   const sanitizedTitle = anime.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
   const html = `
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Episode ${episode} - GogoAnime</title>
+  <title>Episode ${episode} - Server 2</title>
   <style>
     * {
       margin: 0;
@@ -44,15 +44,15 @@ export async function GET(request: Request) {
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      color: #22d3ee;
+      color: #a78bfa;
       font-size: 16px;
       text-align: center;
       z-index: 100;
     }
     .spinner {
-      border: 3px solid rgba(34, 211, 238, 0.2);
+      border: 3px solid rgba(167, 139, 250, 0.2);
       border-radius: 50%;
-      border-top: 3px solid #22d3ee;
+      border-top: 3px solid #a78bfa;
       width: 40px;
       height: 40px;
       animation: spin 1s linear infinite;
@@ -62,13 +62,14 @@ export async function GET(request: Request) {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    [class*="ad"], [id*="ad"], ins { display: none !important; }
   </style>
 </head>
 <body>
   <div id="player-container">
     <div class="loading" id="loading">
       <div class="spinner"></div>
-      <div>Loading from GogoAnime...</div>
+      <div>Loading from Server 2...</div>
     </div>
     <iframe id="player" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups allow-modals"></iframe>
   </div>
@@ -77,12 +78,16 @@ export async function GET(request: Request) {
     (function() {
       'use strict';
 
-      // Multiple streaming sources with better working APIs
+      // Block popups
+      window.open = () => null;
+
+      // Multiple GogoAnime streaming sources
       const streamSources = [
-        'https://goload.pro/streaming.php?id=${sanitizedTitle}-episode-${episode}',
-        'https://gogohd.net/streaming.php?id=${sanitizedTitle}-episode-${episode}',
+        'https://gogoanime3.co/streaming.php?id=${sanitizedTitle}-episode-${episode}',
+        'https://gogoanime3.co/${sanitizedTitle}-episode-${episode}',
         'https://embtaku.pro/streaming.php?id=${sanitizedTitle}-episode-${episode}',
-        'https://2anime.xyz/embed/${sanitizedTitle}-episode-${episode}'
+        'https://www1.gogoanime3.com/watch/${sanitizedTitle}/${episode}',
+        'https://anitaku.pe/streaming.php?id=${sanitizedTitle}-episode-${episode}'
       ];
 
       let sourceIndex = 0;
@@ -96,7 +101,7 @@ export async function GET(request: Request) {
         iframe.onload = function() {
           setTimeout(() => {
             if (loading) loading.style.display = 'none';
-          }, 1500);
+          }, 2000);
         };
 
         iframe.onerror = function() {
@@ -106,13 +111,27 @@ export async function GET(request: Request) {
             setTimeout(loadStream, 1000);
           } else {
             if (loading) {
-              loading.innerHTML = '<div style="color: #fb7185;">Unable to load stream. Please try another provider.</div>';
+              loading.innerHTML = '<div style="color: #fb7185;">Unable to load stream. Please try another server.</div>';
             }
           }
         };
       }
 
       loadStream();
+
+      // Remove ads periodically
+      setInterval(() => {
+        document.querySelectorAll('[class*="ad"],[id*="ad"],ins').forEach(e => e.remove());
+      }, 300);
+
+      // Prevent ad clicks
+      document.addEventListener('click', e => {
+        if (e.target.closest('[class*="ad"]')) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      }, true);
 
     })();
   </script>
