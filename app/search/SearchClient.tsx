@@ -51,7 +51,7 @@ const item: Variants = {
   },
 };
 
-export default function SearchPage() {
+export default function SearchClient() {
   const searchParams = useSearchParams();
   const query = searchParams?.get("q") || "";
 
