@@ -4,7 +4,7 @@ An extremely animated and beautiful anime streaming website built with Next.js, 
 
 ## Features
 
-- **Multiple Streaming Providers**: Integrated with VidRock, GogoAnime, Zoro, and AnimePahe for reliable streaming
+- **Multiple Streaming Providers**: Integrated with HiAnime, GoGoAnime, Aniwatch, and Universal fallback for reliable streaming
 - **Ad Blocker**: Built-in ad blocking and redirect prevention for smooth viewing experience
 - **Beautiful Animations**: Every component is animated using Framer Motion
 - **Live Backgrounds**: Dynamic gradient backgrounds with interactive effects
@@ -21,7 +21,8 @@ An extremely animated and beautiful anime streaming website built with Next.js, 
 - **Animations**: Framer Motion
 - **Icons**: Lucide React
 - **Data Source**: AniList GraphQL API
-- **Streaming**: Multiple anime streaming providers
+- **Streaming**: HiAnime.to via aniwatch npm package (v2.24.3)
+- **Additional Sources**: GoGoAnime, Aniwatch.to, and multiple mirror sites
 
 ## Getting Started
 
@@ -55,10 +56,14 @@ npm start
 - Smooth animations and transitions
 
 ### Anime Detail Page
-- Full anime information
-- Episode selector
-- Multiple streaming provider options
-- Video player with ad blocking
+- Full anime information from AniList
+- Episode selector with grid view
+- 4 streaming server options:
+  - **HiAnime (Best)**: Primary server with direct video sources via aniwatch API
+  - **GoGoAnime**: Alternative server with multiple mirrors (anitaku.pe, gogoanime3.co)
+  - **Aniwatch**: Backup server (aniwatch.to, kaido.to, zoro.to)
+  - **Universal**: Smart player that tries all sources with automatic fallback
+- Video player with built-in ad blocking and subtitle support
 
 ### Search & Browse
 - Fast search functionality
@@ -66,11 +71,73 @@ npm start
 - Infinite scroll support
 - Animated results
 
-### Ad Blocking
-- Blocks popup windows
-- Prevents redirects
-- Removes ad elements
-- Clean streaming experience
+### Ad Blocking & Security
+- Blocks popup windows automatically
+- Prevents redirects and malicious scripts
+- Removes ad elements periodically
+- Sandboxed iframes for additional security
+- Clean and safe streaming experience
+
+## API Documentation
+
+### Streaming Endpoints
+
+#### `/api/stream/episode-sources`
+Fetches direct video sources from HiAnime using the aniwatch package.
+
+**Query Parameters:**
+- `animeId`: HiAnime anime ID
+- `episode`: Episode number
+
+**Response:**
+```json
+{
+  "success": true,
+  "episodeId": "steinsgate-3?ep=230",
+  "episodeNumber": 1,
+  "server": "vidstreaming",
+  "sources": [
+    {
+      "url": "https://...",
+      "quality": "1080p"
+    }
+  ],
+  "subtitles": [
+    {
+      "url": "https://...",
+      "lang": "English"
+    }
+  ]
+}
+```
+
+#### `/api/stream/search-anime`
+Maps AniList anime to HiAnime for streaming.
+
+**Query Parameters:**
+- `q`: Anime title to search
+- `anilistId`: Optional AniList ID
+
+**Response:**
+```json
+{
+  "success": true,
+  "anime": {
+    "id": "steinsgate-3",
+    "name": "Steins;Gate",
+    "episodes": 24
+  }
+}
+```
+
+#### Server-specific Players
+
+- `/api/stream/hianime` - HiAnime player with direct sources
+- `/api/stream/gogoanime` - GoGoAnime iframe player
+- `/api/stream/aniwatch` - Aniwatch iframe player
+- `/api/stream/universal` - Universal player with auto-fallback
+
+All accept: `anime`, `episode`, `id` query parameters
 
 ## Created By
 
